@@ -10,7 +10,7 @@
 Đã thực hiện cài đặt thành công Bagisto và extension `bagisto-headless`. Đã cấu hình Channel, Locale, Currency và tạo tài khoản Admin.
 
 **Minh chứng danh sách 03 sản phẩm đã thêm:**
-*(Sản phẩm được đặt tên theo cú pháp Huy_[Tên sản phẩm])*
+*(Sản phẩm được đặt tên theo cú pháp NguyenTienDucHuy_[Tên sản phẩm])*
 
 ![Danh sách sản phẩm trong Admin](./image/three_products.png)
 
