@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DucHuy Shops</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Thêm một chút hiệu ứng chuyển động mượt mà cho Card */
+        .product-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800">
+
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">Web Application</h1>
+            <div class="text-right">
+                <p class="font-bold text-yellow-300 text-lg">Sinh viên: Nguyễn Tiến Đức Huy</p>
+                <p class="text-sm text-blue-100">MSSV: 23810310127</p> </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <h2 class="text-3xl font-extrabold text-gray-900 mb-8 border-b-2 border-indigo-500 pb-2 inline-block">Sản Phẩm Mới Nhất</h2>
+        
+        <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <p class="text-gray-500 italic col-span-full">Đang tải dữ liệu từ API...</p>
+        </div>
+    </main>
+
+    <script>
+        
+        const GRAPHQL_ENDPOINT = 'http://127.0.0.1:8000/graphql';
+
+        const query = `
+            query {
+                products(input: { page: 1, limit: 5 }) {
+                    data {
+                        id
+                        name
+                        price
+                        description
+                    }
+                }
+            }
+        `;
+
+        async function fetchProducts() {
+            try {
+                const response = await fetch(GRAPHQL_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json',
+                    'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjgwMDAvZ3JhcGhxbCIsImlhdCI6MTc3NTIyNzExMCwiZXhwIjoxNzc1MjMwNzEwLCJuYmYiOjE3NzUyMjcxMTAsImp0aSI6IllVV3d2alBZQURDZDByNXQiLCJzdWIiOiIxIiwicHJ2IjoiZGJhMjRmYmQ5OWI2MWE1MGUxYWU4ODU3NGJmMmQwZTI3M2FkZmU4NyJ9.8jcacqddc2DihUMOZbPIQZpO3oCoQy3UqihwiiEDZ1o',
+                    },
+                    body: JSON.stringify({ query }) 
+                });
+
+                const result = await response.json();
+                
+                // 1. In toàn bộ kết quả ra Console để giám sát
+                console.log("Kết quả từ Bagisto:", result);
+
+                // 2. Bắt lỗi nội bộ của GraphQL
+                if (result.errors) {
+                    console.error("Bagisto báo lỗi:", result.errors);
+                    document.getElementById('product-list').innerHTML = `<p class="text-red-500 font-bold">Lỗi GraphQL: ${result.errors[0].message}</p>`;
+                    return; // Dừng lại ngay
+                }
+                
+
+                if (result.data && result.data.products) {
+                    const products = result.data.products.data;
+                    renderProducts(products);
+                }
+
+            } catch (error) {
+                console.error("Lỗi Mạng/CORS:", error);
+                document.getElementById('product-list').innerHTML = '<p class="text-red-500">Lỗi kết nối. Hãy kiểm tra tab Console (F12) để xem chi tiết!</p>';
+            }
+        }
+
+        // Hàm hiển thị dữ liệu ra HTML
+        function renderProducts(products) {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+
+            products.forEach(product => {
+                // Tạo Card sản phẩm bằng Tailwind CSS
+                const card = `
+                    <div class="product-card bg-white rounded-2xl p-6 border border-gray-100 flex flex-col justify-between">
+                        <div>
+                            <div class="w-full h-48 bg-indigo-50 rounded-xl mb-4 flex items-center justify-center text-indigo-300">
+                                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2 truncate" title="${product.name}">${product.name}</h3>
+                            <p class="text-indigo-600 font-extrabold text-lg mb-4">${product.price}</p>
+                        </div>
+                        <button class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-xl transition duration-200">
+                            Xem Chi Tiết
+                        </button>
+                    </div>
+                `;
+                productList.innerHTML += card;
+            });
+        }
+
+        // Kích hoạt hàm gọi API khi trang vừa load xong
+        window.onload = fetchProducts;
+    </script>
+</body>
+</html>
